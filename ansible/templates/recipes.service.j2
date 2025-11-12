@@ -1,0 +1,15 @@
+[Unit]
+Description= Recipes Service via Podman compose
+PartOf=podman.service
+After=podman.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+WorkingDirectory=/opt/recipes/
+ExecStart=podman-compose up -d --remove-orphans
+ExecStop=vpodman-compose down
+User=sysadm
+
+[Install]
+WantedBy=multi-user.target
