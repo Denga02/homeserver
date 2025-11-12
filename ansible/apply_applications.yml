@@ -1,0 +1,14 @@
+---
+- name: Apply applications
+  hosts: homeserver
+  remote_user: sysadm
+
+  handlers:
+    - name: Reload Systemd
+      ansible.builtin.import_tasks:
+        file: handlers/reload_systemd.yml
+
+  tasks:
+    - name: Apply tandor recipes
+      ansible.builtin.import_tasks:
+        file: tasks/recipes.yml
