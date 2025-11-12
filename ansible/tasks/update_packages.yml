@@ -1,0 +1,6 @@
+---
+- name: Update Packages
+  become: true
+  ansible.builtin.package:
+    name: '*'
+    state: latest
