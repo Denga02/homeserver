@@ -1,0 +1,7 @@
+all:
+  hosts:
+    homeserver:
+      ansible_host: homeserver.fritz.box      
+      ansible_user: sysadm
+      ansible_python_interpreter: /usr/bin/python3
+
