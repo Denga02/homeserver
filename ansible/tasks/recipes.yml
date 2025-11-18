@@ -1,4 +1,22 @@
 ---
+- name: Create filesystem
+  become: true
+  ansible.builtin.file:
+    path: /opt/recipes
+    owner: sysadm
+    group: sysadm
+    mode: '0755'
+    state: directory
+
+- name: Create systemd filesystem
+  become: true
+  ansible.builtin.file:
+    path: /home/sysadm/.config/systemd/user 
+    owner: sysadm
+    group: sysadm
+    mode: '0755'
+    state: directory
+
 - name: Rollout .env
   ansible.builtin.template:
     src: ../templates/recipes-env.j2
@@ -6,7 +24,7 @@
     owner: sysadm
     group: sysadm
     mode: '0644'
-    backup: true
+    backup: false
 
 - name: Rollout compose file
   ansible.builtin.template:
@@ -17,17 +35,31 @@
     mode: '0644'
     backup: true
 
-- name: Place systemd unit
+- name: Enable linger for sysadm
   become: true
+  ansible.builtin.command: "loginctl enable-linger sysadm"
+
+- name: Place systemd unit in sysadm user dir
+  become: true
+  become_user: sysadm
   ansible.builtin.template:
     src: recipes.service.j2
-    dest: /etc/systemd/system/recipes.service
+    dest: "/home/sysadm/.config/systemd/user/podman-compose@recipe.service"
     mode: '0644'
-  notify: Reload systemd
 
-- name: Enable and start service
+- name: Reload user systemd daemon
   become: true
+  become_user: sysadm
   ansible.builtin.systemd:
-    name: recipes.service
+    scope: user
+    daemon_reload: true
+
+- name: Enable and start podman-compose instance
+  become: true
+  become_user: sysadm
+  ansible.builtin.systemd:
+    name: "podman-compose@recipe.service"
+    scope: user
     enabled: true
     state: started
+

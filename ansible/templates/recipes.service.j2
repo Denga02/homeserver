@@ -1,15 +1,11 @@
 [Unit]
-Description= Recipes Service via Podman compose
-PartOf=podman.service
-After=podman.service
+Description=%i rootless pod (podman-compose)
 
 [Service]
-Type=oneshot
-RemainAfterExit=true
-WorkingDirectory=/opt/recipes/
-ExecStart=podman-compose up -d --remove-orphans
-ExecStop=vpodman-compose down
-User=sysadm
+Type=simple
+WorkingDirectory=/opt/recipes
+ExecStart=/usr/bin/podman-compose up
+ExecStop=/usr/bin/podman-compose stop
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target

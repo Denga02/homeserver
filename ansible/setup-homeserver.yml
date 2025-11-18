@@ -7,7 +7,10 @@
     - name: Update packages
       ansible.builtin.import_tasks:
         file: tasks/update_packages.yml
-    - name: Install podman
+    - name: Install packages
       become: true
       ansible.builtin.import_tasks:
-        file: tasks/install_podman.yml
+        file: tasks/install_packages.yml
+    - name: Setup filesystem
+      ansible.builtin.import_tasks:
+        file: tasks/setup_filesystem.yml
