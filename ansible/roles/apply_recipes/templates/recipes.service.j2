@@ -1,0 +1,12 @@
+[Unit]
+Description=%i rootless pod (podman-compose)
+
+[Service]
+Type=simple
+WorkingDirectory={{ recipes_app_dir }}
+ExecStart=/usr/bin/podman-compose up
+ExecStop=/usr/bin/podman-compose stop
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

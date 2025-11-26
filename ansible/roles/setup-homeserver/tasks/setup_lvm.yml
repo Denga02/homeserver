@@ -1,0 +1,54 @@
+- name: Create volume group with devices
+  become: true
+  community.general.lvg:
+    vg: "{{ item.vg_name }}"
+    pvs: "{{ item.device }}"
+    pvresize: true
+  loop: "{{ lvm_conf }}"
+  loop_control:
+    label: "{{ item.vg_name }} -> {{ item.device }}"
+
+- name: Create logical volume
+  become: true
+  community.general.lvol:
+    vg: "{{ item.vg_name }}"
+    lv: "{{ item.lv_name }}"
+    size: "{{ item.size }}"
+    state: present
+    resizefs: "{{ item.resize }}"
+  loop: "{{ lvm_conf }}"
+  loop_control:
+    label: "{{ item.vg_name }}/{{ item.lv_name }}"
+
+- name: Create filesystem on LV
+  become: true
+  ansible.builtin.filesystem:
+    fstype: "{{ lvm_filesystem_type }}"
+    dev: "/dev/{{ item.vg_name }}/{{ item.lv_name }}"
+  loop: "{{ lvm_conf }}"
+  loop_control:
+    label: "{{ item.vg_name }}/{{ item.lv_name }}"
+
+- name: Mount filesystem
+  become: true
+  ansible.posix.mount:
+    path: "{{ item.path }}"
+    src: "/dev/{{ item.vg_name }}/{{ item.lv_name }}"
+    state: mounted
+    fstype: "{{ lvm_filesystem_type }}"
+    opts: "{{ lvm_mount_opts }}"
+  loop: "{{ lvm_conf }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Change file permissions
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: "{{ rootless_user }}"
+    group: "{{ rootless_user }}"
+    mode: '0755'
+    state: directory
+  loop: "{{ lvm_conf }}"
+  loop_control:
+    label: "{{ item.path }}"

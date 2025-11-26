@@ -1,0 +1,12 @@
+---
+- name: check os is Debian
+  ansible.builtin.fail:
+    msg: "wrong os"
+  when: ansible_facts.distribution != 'Debian'
+
+- name: Install packages
+  ansible.builtin.import_tasks:
+    file: install_packages.yml
+- name: Setup lvm
+  ansible.builtin.import_tasks:
+    file: setup_lvm.yml

@@ -1,0 +1,4 @@
+---
+- name: Deploy recipes
+  ansible.builtin.import_tasks:
+    file: recipes.yml
