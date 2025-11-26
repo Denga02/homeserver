@@ -1,0 +1,8 @@
+- name: Setup homeserver
+  hosts: homeserver
+  remote_user: sysadm
+  become: true
+
+  roles:
+    - role: setup-homeserver
+    - role: apply_recipes

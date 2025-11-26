@@ -1,0 +1,39 @@
+services:
+  db_recipes:
+    restart: always
+    image: "{{ recipes_db_image }}"
+    volumes:
+      - "{{ recipes_app_dir }}/postgresql:/var/lib/postgresql/data"
+      - "{{ recipes_backup_dir }}/pgbackup:/backups:ro"
+    env_file:
+      - "{{ recipes_app_dir }}/.env"
+
+  web_recipes:
+    restart: always
+    image: "{{ recipes_app_image }}"
+    env_file:
+      - "{{ recipes_app_dir }}/.env"
+    ports:
+      - "{{ recipes_http_port }}"
+    volumes:
+      - staticfiles:/opt/apps/recipes/staticfiles
+      - "{{ recipes_app_dir }}/mediafiles:/opt/apps/recipes/mediafiles"
+    depends_on:
+      - db_recipes
+
+  pgbackup:
+    container_name: pgbackup
+    env_file:
+      - "{{ recipes_app_dir }}/.env"
+    environment:
+      BACKUP_KEEP_DAYS: "{{ recipes_backup_keep_days }}"
+      BACKUP_KEEP_MONTHS: "{{ recipes_backup_keep_months }}"
+      BACKUP_KEEP_WEEKS: "{{ recipes_backup_keep_weeks }}"
+      POSTGRES_EXTRA_OPTS: -Z6 --schema=public --blobs
+      SCHEDULE: "{{ recipes_backup_schedule }}"
+    image: "{{ recipes_backup_image }}"
+    restart: unless-stopped
+    volumes:
+      - "{{ recipes_backup_dir }}/pgbackup:/backups"
+volumes:
+  staticfiles:

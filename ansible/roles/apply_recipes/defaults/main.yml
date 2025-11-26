@@ -1,0 +1,29 @@
+recipes_user: "{{ rootless_user | default('sysadm') }}"
+recipes_user_home: "/home/{{ recipes_user }}"
+recipes_config_dir: "{{ recipes_user_home }}/.config/systemd/user"
+recipes_app_dir: /opt/apps/recipes
+recipes_backup_dir: /opt/backup/recipes
+recipes_timezone: Europe/Berlin
+recipes_service_name: podman-compose@recipe.service
+recipes_compose_template: recipes-compose.j2
+recipes_env_template: recipes-env.j2
+
+recipes_app_image: docker.io/vabene1111/recipes:2.2
+recipes_db_image: docker.io/postgres:16-alpine
+recipes_backup_image: docker.io/prodrigestivill/postgres-backup-local:16-alpine
+recipes_http_port: "8080:80"
+
+recipes_db_engine: django.db.backends.postgresql
+recipes_db_host: db_recipes
+recipes_db_name: djangodb
+recipes_db_port: 5432
+recipes_db_user: djangouser
+
+recipes_backup_keep_days: 8
+recipes_backup_keep_weeks: 4
+recipes_backup_keep_months: 6
+recipes_backup_schedule: "@daily"
+
+# pulled from vault; keep both spellings to avoid breakage during rename
+recipes_secret_key: "{{ vault_secret_key | default(vault_secrect_key | default('')) }}"
+recipes_db_password: "{{ vault_postgres_password | default('') }}"

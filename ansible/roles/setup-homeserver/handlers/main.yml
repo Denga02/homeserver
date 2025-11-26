@@ -1,0 +1,5 @@
+---
+- name: Reboot vm
+  become: true
+  ansible.builtin.reboot:
+

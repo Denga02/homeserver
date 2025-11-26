@@ -1,0 +1,60 @@
+- name: Validate required secrets
+  ansible.builtin.assert:
+    that:
+      - recipes_secret_key | default('') | length > 0
+      - recipes_db_password | default('') | length > 0
+    fail_msg: "recipes_secret_key and recipes_db_password must be set (usually via vault variables)."
+
+- name: Ensure recipes directories exist
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: "{{ recipes_user }}"
+    group: "{{ recipes_user }}"
+    mode: "{{ item.mode }}"
+    state: directory
+  loop:
+    - { path: "{{ recipes_app_dir }}", mode: "0755" }
+    - { path: "{{ recipes_app_dir }}/postgresql", mode: "0700" }
+    - { path: "{{ recipes_app_dir }}/mediafiles", mode: "0755" }
+    - { path: "{{ recipes_backup_dir }}", mode: "0755" }
+    - { path: "{{ recipes_backup_dir }}/pgbackup", mode: "0700" }
+    - { path: "{{ recipes_config_dir }}", mode: "0700" }
+
+- name: Rollout .env
+  become: true
+  ansible.builtin.template:
+    src: "{{ recipes_env_template }}"
+    dest: "{{ recipes_app_dir }}/.env"
+    owner: "{{ recipes_user }}"
+    group: "{{ recipes_user }}"
+    mode: '0640'
+
+- name: Rollout compose file
+  become: true
+  ansible.builtin.template:
+    src: "{{ recipes_compose_template }}"
+    dest: "{{ recipes_app_dir }}/docker-compose.yml"
+    owner: "{{ recipes_user }}"
+    group: "{{ recipes_user }}"
+    mode: '0644'
+
+- name: Place systemd unit in user dir
+  become: true
+  ansible.builtin.template:
+    src: recipes.service.j2
+    dest: "{{ recipes_config_dir }}/{{ recipes_service_name }}"
+    owner: "{{ recipes_user }}"
+    group: "{{ recipes_user }}"
+    mode: '0644'
+  notify: Reload systemd
+
+- name: Enable and start podman-compose instance
+  become: true
+  become_user: "{{ recipes_user }}"
+  ansible.builtin.systemd:
+    name: "{{ recipes_service_name }}"
+    scope: user
+    enabled: true
+    state: started
+    daemon_reload: true

@@ -1,0 +1,19 @@
+setup_homeserver_packages:
+  - lvm2
+  - podman
+  - podman-compose
+  # see https://github.com/containers/podman/issues/16956
+  - iptables
+
+package_cache_valid_time: 3600
+lvm_filesystem_type: ext4
+lvm_mount_opts: defaults
+
+lvm_conf:
+  - { vg_name: apps, lv_name: recipes, size: 20G, device: /dev/sda, path: /opt/apps/recipes, resize: false }
+  - { vg_name: apps, lv_name: nextcloud, size: 20G, device: /dev/sda, path: /opt/apps/nextcloud, resize: false }
+  - { vg_name: backup, lv_name: recipes, size: 20G, device: /dev/sdb, path: /opt/backup/recipes, resize: false }
+  - { vg_name: backup, lv_name: nextcloud, size: 20G, device: /dev/sdb, path: /opt/backup/recipes, resize: false }
+
+rootless_user: sysadm
+
