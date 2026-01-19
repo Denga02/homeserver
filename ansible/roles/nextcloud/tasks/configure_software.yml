@@ -1,0 +1,78 @@
+- name: Copy nginx conf
+  ansible.builtin.copy:
+    src: ../files/nginx.conf
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload nginx
+  become: true
+
+- name: configure mariaDB
+  block:
+    - name: mariadb secure installation
+      ansible.builtin.import_tasks:
+        file: mysql_secure_installation.yml
+    - name: Copy Mariadb server conf
+      ansible.builtin.copy:
+        src: ../files/50-server.cnf
+        dest: /etc/mysql/mariadb.conf.d
+        owner: root
+        group: root
+        mode: '0644'
+  notify: Relaod mariadb server
+  become: true
+        
+
+
+- name: Ensure php config
+  block:
+    - name: Ensure php www.conf
+      ansible.builtin.replace:
+        path: /etc/php/8.4/fpm/pool.d/www.conf
+        regexp: '^;\s*(env\[{{ item }}\]\s*=.*)$'
+        replace: '\1'
+      loop:
+        - HOSTNAME
+        - TMP
+        - TMPDIR
+        - TEMP
+        - PATH
+
+
+    - name: Configure PHP-FPM php.ini
+      ansible.builtin.lineinfile:
+        path: /etc/php/8.4/fpm/php.ini
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      loop:
+        - { regexp: '^;?cgi\.fix_pathinfo\s*=.*', line: 'cgi.fix_pathinfo=0' }
+        - { regexp: '^memory_limit\s*=.*', line: 'memory_limit = 512M' }
+        - { regexp: '^;?opcache\.enable\s*=.*', line: 'opcache.enable=1' }
+        - { regexp: '^;?opcache\.enable_cli\s*=.*', line: 'opcache.enable_cli=1' }
+        - { regexp: '^;?opcache\.memory_consumption\s*=.*', line: 'opcache.memory_consumption=128' }
+        - { regexp: '^;?opcache\.interned_strings_buffer\s*=.*', line: 'opcache.interned_strings_buffer=32' }
+        - { regexp: '^;?opcache\.max_accelerated_files\s*=.*', line: 'opcache.max_accelerated_files=10000' }
+        - { regexp: '^;?opcache\.revalidate_freq\s*=.*', line: 'opcache.revalidate_freq=60' }
+        - { regexp: '^;?opcache\.save_comments\s*=.*', line: 'opcache.save_comments=1' }
+
+    - name: Configure PHP CLI php.ini
+      ansible.builtin.lineinfile:
+        path: /etc/php/8.4/cli/php.ini
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      loop:
+        - { regexp: '^;?cgi\.fix_pathinfo\s*=.*', line: 'cgi.fix_pathinfo=0' }
+        - { regexp: '^apc\.enable_cli\s*=.*',     line: 'apc.enable_cli=1' }
+  notify: Restart php-fpm
+
+
+- name: Configure Firewall
+  ansible.builtin.import_tasks:
+    file: firewall.yml
+
+- name: Configure letsencrypt
+  ansible.builtin.import_tasks:
+    file: configure_lets_encrypt.yml

@@ -1,0 +1,25 @@
+- name: Create User letsencrypt
+  ansible.builtin.user:
+    name: letsencrypt
+    create_home: true
+    shell: /bin/bash
+    password: ""
+    groups: www-data
+
+- name: Allow letsencrypt reload nginx
+  community.general.sudoers:
+    name: letsencrypt
+    user: letsencrypt
+    commands:
+      - /bin/systemctl reload nginx.service
+
+- name: Install acme.sh
+  become_user: letsencrypt
+  ansible.builtin.command: 
+    cmd: curl https://get.acme.sh | sh
+    creates: "~/.acme.sh"
+
+- name: Set Let's Encrypt as default CA
+  ansible.builtin.command:
+    cmd: "~/.acme.sh/acme.sh --set-default-ca --server letsencrypt"
+  become_user: letsencrypt

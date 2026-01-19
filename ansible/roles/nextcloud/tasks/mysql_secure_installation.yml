@@ -1,0 +1,40 @@
+---
+- name: Ensure root uses unix_socket authentication
+  community.mysql.mysql_user:
+    name: root
+    host: localhost
+    plugin: unix_socket
+    state: present
+    login_unix_socket: "{{ login_unix_socket }}"
+  become: true
+
+- name: Ensure that root can only login from localhost
+  community.mysql.mysql_query:
+    query: >
+      DELETE
+      FROM mysql.user
+      WHERE USER='root'
+        AND HOST NOT IN ('localhost',
+                         '127.0.0.1',
+                         '::1');
+    login_unix_socket: "{{ login_unix_socket }}"
+  when: mysql_remove_remote_root
+  become: true
+
+- name: Ensure that the test database is absent
+  community.mysql.mysql_db:
+    name: test
+    state: absent
+    login_unix_socket: "{{ login_unix_socket }}"
+  when: mysql_remove_test_database
+  become: true
+
+- name: Ensure that anonymous users are absent
+  community.mysql.mysql_user:
+    name: ""
+    state: absent
+    host_all: true
+    login_unix_socket: "{{ login_unix_socket }}"
+  when: mysql_remove_anonymous_users
+  become: true
+

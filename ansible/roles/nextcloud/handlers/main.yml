@@ -1,0 +1,23 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Test nginx config
+  ansible.builtin.command: nginx -t
+  changed_when: false
+  listen: Reload nginx
+  
+- name: Reload nginx
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+  listen: Reload nginx
+
+- name: Relaod mariadb server
+  systemd:
+    name: mariaddb
+    state: restarted
+    enabled: yes
+
+- name: Restart php-fpm
+  ansible.builtin.service:
+    name: php8.4-fpm
+    state: restarted

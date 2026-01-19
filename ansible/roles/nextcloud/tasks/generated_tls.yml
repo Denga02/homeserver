@@ -1,0 +1,39 @@
+- name: Create directory
+  ansible.builtin.file:
+    mode: '775'
+    owner: www-data
+    group: www-data
+    path: "/etc/{{ item }}"
+    state: directory
+  loop: 
+    - letsencrypt
+    - nextcloud
+    - rsa
+    - ecdsa
+  become: true
+
+- name: Create Directory for Challange
+  ansible.builtin.file:
+    mode: '775'
+    path: "{{ item }}"
+    state: directory
+  loop: 
+    - /var/www/letsencrypt/.well-known/acme-challenge
+  become: true
+
+- name: Ensure permissions
+  ansible.builtin.file:
+    owner: www-data
+    group: www-data
+    recurse: true
+    path: /var/www/letsencrypt
+  become: true
+
+- name: Create vhost http-gateway
+  ansible.builtin.copy:
+    src: files/HttpGateway.conf
+    dest: /etc/nginx/conf.d/HttpGateway.conf
+    mode: 755
+    owner: root
+    group: root
+  become: true

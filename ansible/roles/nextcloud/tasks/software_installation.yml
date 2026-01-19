@@ -1,0 +1,19 @@
+- name: Install components
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: latest
+    update_cache: true
+  loop:
+    - "{{ basic_packages }}"
+    - "{{ nextcloud_components }}"
+    - "{{ redis }}"
+
+- name: Enable and start services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  loop:
+    - mariadb
+    - nginx
+

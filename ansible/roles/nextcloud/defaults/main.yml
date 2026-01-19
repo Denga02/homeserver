@@ -1,0 +1,47 @@
+#SPDX-License-Identifier: MIT-0
+---
+basic_packages:
+  - gnupg
+  - gnupg2
+  - bzip2
+  - pigz
+  - lsb-release
+  - wget
+  - imagemagick
+  - libmagickcore-7.q16-10-extra
+  - curl
+  - rsyslog
+  - dialog
+  - apt-utils
+  - cron
+  - ca-certificates
+  - ubuntu-keyring
+nextcloud_components:
+  - nginx
+  - mariadb-server
+  - python3-pymysql
+redis:
+  - php-fpm
+  - php-gd
+  - php-curl
+  - php-xml
+  - php-zip
+  - php-intl
+  - php-mbstring
+  - php-bz2
+  - php-json
+  - php-apcu
+  - php-imagick
+  - php-gmp
+  - php-bcmath
+  - php-redis
+  - php-mysql
+
+mariadb_server_version: "mariadb-11.4"
+
+
+login_unix_socket: /run/mysqld/mysqld.sock
+
+mysql_remove_remote_root: true
+mysql_remove_anonymous_users: true
+mysql_remove_test_database: true
