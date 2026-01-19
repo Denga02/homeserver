@@ -4,5 +4,6 @@
   become: true
 
   roles:
-    - role: setup-homeserver
-    - role: apply_recipes
+    #- role: setup-homeserver
+    #- role: apply_recipes
+    - role: nextcloud
