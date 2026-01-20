@@ -1,4 +1,3 @@
-#SPDX-License-Identifier: MIT-0
 ---
 basic_packages:
   - gnupg
@@ -16,10 +15,12 @@ basic_packages:
   - cron
   - ca-certificates
   - ubuntu-keyring
+
 nextcloud_components:
   - nginx
   - mariadb-server
   - python3-pymysql
+
 redis:
   - php-fpm
   - php-gd
@@ -39,9 +40,26 @@ redis:
 
 mariadb_server_version: "mariadb-11.4"
 
-
+# mariadb secure installation
 login_unix_socket: /run/mysqld/mysqld.sock
-
 mysql_remove_remote_root: true
 mysql_remove_anonymous_users: true
 mysql_remove_test_database: true
+
+# acme
+acme_user: letsencrypt
+
+php_fpm_ini_settings:
+  - { regexp: '^;?cgi\.fix_pathinfo\s*=.*', line: 'cgi.fix_pathinfo=0' }
+  - { regexp: '^memory_limit\s*=.*', line: 'memory_limit = 512M' }
+  - { regexp: '^;?opcache\.enable\s*=.*', line: 'opcache.enable=1' }
+  - { regexp: '^;?opcache\.enable_cli\s*=.*', line: 'opcache.enable_cli=1' }
+  - { regexp: '^;?opcache\.memory_consumption\s*=.*', line: 'opcache.memory_consumption=128' }
+  - { regexp: '^;?opcache\.interned_strings_buffer\s*=.*', line: 'opcache.interned_strings_buffer=32' }
+  - { regexp: '^;?opcache\.max_accelerated_files\s*=.*', line: 'opcache.max_accelerated_files=10000' }
+  - { regexp: '^;?opcache\.revalidate_freq\s*=.*', line: 'opcache.revalidate_freq=60' }
+  - { regexp: '^;?opcache\.save_comments\s*=.*', line: 'opcache.save_comments=1' }
+
+php_fpm_ini_cli:
+  - { regexp: '^;?cgi\.fix_pathinfo\s*=.*', line: 'cgi.fix_pathinfo=0' }
+  - { regexp: '^apc\.enable_cli\s*=.*',     line: 'apc.enable_cli=1' }

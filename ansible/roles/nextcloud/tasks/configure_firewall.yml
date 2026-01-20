@@ -1,0 +1,17 @@
+---
+- name: Ensure UFW is enabled with default deny incoming
+  become: true
+  community.general.ufw:
+    state: enabled
+    policy: deny
+    direction: incoming
+  tags: [ firewall ]
+  
+- name: Allow UFW rules
+  become: true
+  community.general.ufw:
+    rule: allow
+    to_port: "{{ item.port }}"
+    comment: "{{ item.name }}"
+  loop: "{{ ufw_allow_rules }}"
+  tags: [ firewall ]

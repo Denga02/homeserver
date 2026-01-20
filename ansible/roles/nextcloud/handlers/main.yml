@@ -11,7 +11,7 @@
     state: reloaded
   listen: Reload nginx
 
-- name: Relaod mariadb server
+- name: Relaod mariadb
   systemd:
     name: mariaddb
     state: restarted

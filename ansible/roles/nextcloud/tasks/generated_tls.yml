@@ -1,16 +1,17 @@
-- name: Create directory
+---
+- name: Ensure ACME and TLS directory structure exists
+  become: true
   ansible.builtin.file:
+    path: "/etc/{{ item }}"
     mode: '775'
     owner: www-data
     group: www-data
-    path: "/etc/{{ item }}"
     state: directory
   loop: 
     - letsencrypt
     - nextcloud
     - rsa
     - ecdsa
-  become: true
 
 - name: Create Directory for Challange
   ansible.builtin.file:
@@ -37,3 +38,4 @@
     owner: root
     group: root
   become: true
+  notify: Reload nginx

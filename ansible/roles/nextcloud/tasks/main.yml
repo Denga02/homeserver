@@ -1,13 +1,12 @@
-#SPDX-License-Identifier: MIT-0
 ---
-- name: install basic components
-  ansible.builtin.import_tasks:
-    file: software_installation.yml
+- name: Install base packages and services
+  ansible.builtin.import_tasks: software_installation.yml
+  tags: [ install ]
 
-- name: configure software
-  ansible.builtin.import_tasks:
-    file: configure_software.yml
+- name: Configure services and system
+  ansible.builtin.import_tasks: configure_software.yml
+  tags: [ config ]
 
-- name: Generate tls
-  ansible.builtin.import_tasks:
-    file: generated_tls.yml
+- name: Prepare TLS and ACME prerequisites
+  ansible.builtin.import_tasks: generated_tls.yml
+  tags: [ tls ]

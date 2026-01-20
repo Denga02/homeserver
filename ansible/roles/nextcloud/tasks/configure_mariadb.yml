@@ -1,40 +1,54 @@
 ---
 - name: Ensure root uses unix_socket authentication
+  become: true
   community.mysql.mysql_user:
     name: root
     host: localhost
     plugin: unix_socket
     state: present
     login_unix_socket: "{{ login_unix_socket }}"
-  become: true
+  tags: [ mariadb ]
 
 - name: Ensure that root can only login from localhost
+  become: true
   community.mysql.mysql_query:
     query: >
       DELETE
       FROM mysql.user
       WHERE USER='root'
-        AND HOST NOT IN ('localhost',
-                         '127.0.0.1',
-                         '::1');
+        AND HOST NOT IN ('localhost','127.0.0.1','::1');
     login_unix_socket: "{{ login_unix_socket }}"
-  when: mysql_remove_remote_root
-  become: true
+  when: mysql_remove_remote_root | bool
+  notify: Relaod mariadb 
+  tags: [mariadb]
 
 - name: Ensure that the test database is absent
+  become: true
   community.mysql.mysql_db:
     name: test
     state: absent
     login_unix_socket: "{{ login_unix_socket }}"
-  when: mysql_remove_test_database
-  become: true
+  when: mysql_remove_test_database | bool
+  tags: [mariadb]
 
 - name: Ensure that anonymous users are absent
+  become: true
   community.mysql.mysql_user:
     name: ""
     state: absent
     host_all: true
     login_unix_socket: "{{ login_unix_socket }}"
-  when: mysql_remove_anonymous_users
-  become: true
+  when: mysql_remove_anonymous_users | bool
+  notify: Relaod mariadb
+  tags: [mariadb]
 
+- name: Deploy MariaDB server configuration
+  become: true
+  ansible.builtin.copy:
+    src: 50-server.cnf
+    dest: /etc/mysql/mariadb.conf.d/50-server.cnf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Relaod mariadb
+  tags: [mariadb]
