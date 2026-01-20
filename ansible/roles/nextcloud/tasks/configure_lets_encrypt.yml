@@ -4,5 +4,4 @@
   become_user: letsencrypt
   ansible.builtin.command:
     cmd: "~/.acme.sh/acme.sh --set-default-ca --server letsencrypt"
-    changed_when: false
   tags: [acme]

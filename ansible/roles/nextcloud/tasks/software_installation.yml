@@ -7,7 +7,7 @@
   loop:
     - "{{ basic_packages }}"
     - "{{ nextcloud_components }}"
-    - "{{ redis }}"
+    - "{{ redis_packages }}"
   tags: [ install, packages ]
 
 - name: Ensure ACME user exists

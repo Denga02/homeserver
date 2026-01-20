@@ -2,40 +2,45 @@
 - name: Ensure ACME and TLS directory structure exists
   become: true
   ansible.builtin.file:
-    path: "/etc/{{ item }}"
-    mode: '775'
-    owner: www-data
-    group: www-data
+    path: "{{ item.path }}"
     state: directory
-  loop: 
-    - letsencrypt
-    - nextcloud
-    - rsa
-    - ecdsa
-
-- name: Create Directory for Challange
-  ansible.builtin.file:
-    mode: '775'
-    path: "{{ item }}"
-    state: directory
-  loop: 
-    - /var/www/letsencrypt/.well-known/acme-challenge
-  become: true
-
-- name: Ensure permissions
-  ansible.builtin.file:
-    owner: www-data
-    group: www-data
-    recurse: true
-    path: /var/www/letsencrypt
-  become: true
-
-- name: Create vhost http-gateway
-  ansible.builtin.copy:
-    src: files/HttpGateway.conf
-    dest: /etc/nginx/conf.d/HttpGateway.conf
-    mode: 755
     owner: root
     group: root
+    mode: 755
+  loop:
+    - { path: "{{ tls_base_dir }}" }
+    - { path: "{{ tls_base_dir }}/nextcloud" }
+    - { path: "{{ tls_base_dir }}/rsa" }
+    - { path: "{{ tls_base_dir }}/ecdsa" }
+  tags: [tls]
+
+
+- name: Ensure ACME http-01 challenge webroot exists
   become: true
+  ansible.builtin.file:
+    path: "{{ acme_webroot }}/.well-known/acme-challenge"
+    state: directory
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    mode: '775'
+  tags: [tls]
+
+- name: Ensure permissions for ACME webroot
+  become: true
+  ansible.builtin.file:
+    path: "{{ acme_webroot }}"
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    recurse: true
+  tags: [tls]
+
+- name: Deploy nginx vhost for ACME http-01 gateway
+  become: true
+  ansible.builtin.copy:
+    src: HttpGateway.conf
+    dest: /etc/nginx/conf.d/HttpGateway.conf
+    owner: root
+    group: root
+    mode: "0644"
   notify: Reload nginx
+  tags: [tls, nginx]

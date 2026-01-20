@@ -1,4 +1,5 @@
 ---
+# Packages
 basic_packages:
   - gnupg
   - gnupg2
@@ -21,7 +22,7 @@ nextcloud_components:
   - mariadb-server
   - python3-pymysql
 
-redis:
+redis_packages:
   - php-fpm
   - php-gd
   - php-curl
@@ -38,16 +39,30 @@ redis:
   - php-redis
   - php-mysql
 
-mariadb_server_version: "mariadb-11.4"
-
-# mariadb secure installation
-login_unix_socket: /run/mysqld/mysqld.sock
-mysql_remove_remote_root: true
-mysql_remove_anonymous_users: true
-mysql_remove_test_database: true
-
-# acme
+# Users
 acme_user: letsencrypt
+
+# Web
+web_user: www-data
+web_group: www-data
+
+# Paths
+acme_webroot: /var/www/letsencrypt
+tls_base_dir: /etc/letsencrypt
+
+# PHP
+php_version: "8.4"
+php_fpm_service: "php{{ php_version }}-fpm"
+php_fpm_pool_conf: "/etc/php/{{ php_version }}/fpm/pool.d/www.conf"
+php_fpm_ini: "/etc/php/{{ php_version }}/fpm/php.ini"
+php_cli_ini: "/etc/php/{{ php_version }}/cli/php.ini"
+
+php_fpm_env_vars:
+  - HOSTNAME
+  - TMP
+  - TMPDIR
+  - TEMP
+  - PATH
 
 php_fpm_ini_settings:
   - { regexp: '^;?cgi\.fix_pathinfo\s*=.*', line: 'cgi.fix_pathinfo=0' }
@@ -63,3 +78,15 @@ php_fpm_ini_settings:
 php_fpm_ini_cli:
   - { regexp: '^;?cgi\.fix_pathinfo\s*=.*', line: 'cgi.fix_pathinfo=0' }
   - { regexp: '^apc\.enable_cli\s*=.*',     line: 'apc.enable_cli=1' }
+
+# MariaDB hardening
+login_unix_socket: /run/mysqld/mysqld.sock
+mysql_remove_remote_root: true
+mysql_remove_anonymous_users: true
+mysql_remove_test_database: true
+
+# Firewall
+ufw_allow_rules:
+  - { name: "SSH",  port: 22,  proto: "tcp" }
+  - { name: "HTTP", port: 80,  proto: "tcp" }
+  - { name: "HTTPS", port: 443, proto: "tcp" }
