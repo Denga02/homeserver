@@ -10,3 +10,12 @@
 - name: Prepare TLS and ACME prerequisites
   ansible.builtin.import_tasks: generated_tls.yml
   tags: [ tls ]
+
+- name: Configure ssl
+  ansible.builtin.import_tasks: configure_ssl.yml
+
+- name: Configure headers
+  ansible.builtin.import_tasks: configure_header.yml
+
+- name: Deploy Nextcloud vHost
+  ansible.builtin.import_tasks: nextcloud_vhost.yml

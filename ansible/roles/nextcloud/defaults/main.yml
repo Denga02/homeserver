@@ -45,10 +45,11 @@ acme_user: letsencrypt
 # Web
 web_user: www-data
 web_group: www-data
+domain: www.dannyhub.de
 
 # Paths
 acme_webroot: /var/www/letsencrypt
-tls_base_dir: /etc/letsencrypt
+tls_base_dir: "/etc/letsencrypt/{{ domain }}"
 
 # PHP
 php_version: "8.4"
@@ -90,3 +91,4 @@ ufw_allow_rules:
   - { name: "SSH",  port: 22,  proto: "tcp" }
   - { name: "HTTP", port: 80,  proto: "tcp" }
   - { name: "HTTPS", port: 443, proto: "tcp" }
+

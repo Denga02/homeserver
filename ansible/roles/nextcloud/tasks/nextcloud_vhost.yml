@@ -1,0 +1,9 @@
+- name: Deploy vHost
+  become: true
+  ansible.builtin.copy:
+    src: www.dannyhub.de.conf
+    dest: /etc/nginx/conf.d/www.dannyhub.de.conf
+    owner: root
+    group: root
+    mode: '0755'
+  notify: Reload nginx

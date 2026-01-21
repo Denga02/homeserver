@@ -4,12 +4,11 @@
   ansible.builtin.file:
     path: "{{ item.path }}"
     state: directory
-    owner: root
-    group: root
-    mode: 755
+    owner: "{{ acme_user }}"
+    group: "{{ web_user }}"
+    mode: '775'
   loop:
     - { path: "{{ tls_base_dir }}" }
-    - { path: "{{ tls_base_dir }}/nextcloud" }
     - { path: "{{ tls_base_dir }}/rsa" }
     - { path: "{{ tls_base_dir }}/ecdsa" }
   tags: [tls]
@@ -41,6 +40,54 @@
     dest: /etc/nginx/conf.d/HttpGateway.conf
     owner: root
     group: root
-    mode: "0644"
+    mode: "775"
   notify: Reload nginx
   tags: [tls, nginx]
+
+- name: Issue certificate with acme.sh
+  become_user: "{{ acme_user }}"
+  ansible.builtin.command:
+    cmd: >
+      ~/.acme.sh/acme.sh --issue
+      -d {{ domain }}
+      --keylength 4096
+      -w {{ acme_webroot }}
+      --key-file {{ tls_base_dir }}/rsa/key.pem
+      --ca-file {{ tls_base_dir }}/rsa/ca.pem
+      --cert-file {{ tls_base_dir }}/rsa/cert.pem
+      --fullchain-file {{ tls_base_dir }}/rsa/fullchain.pem
+      --reloadcmd "sudo /bin/systemctl reload nginx.service"
+    creates: "{{ tls_base_dir }}/rsa/fullchain.pem"
+  notify: Reload nginx
+  tags: [tls,ca-issue]
+
+- name: Issue ECDSA with acme.sh
+  become_user: "{{ acme_user }}"
+  ansible.builtin.command:
+    cmd: >
+      ~/.acme.sh/acme.sh --issue
+      -d {{ domain }}
+      --keylength ec-384
+      -w {{ acme_webroot }}
+      --key-file {{ tls_base_dir }}/ecdsa/key.pem
+      --ca-file {{ tls_base_dir }}/ecdsa/ca.pem
+      --cert-file {{ tls_base_dir }}/ecdsa/cert.pem
+      --fullchain-file {{ tls_base_dir }}/ecdsa/fullchain.pem
+      --reloadcmd "sudo /bin/systemctl reload nginx.service"
+    creates: "{{ tls_base_dir }}/ecdsa/fullchain.pem"
+  notify: Reload nginx
+  tags: [tls,ecdsa-issue]
+
+- name: Ensure dhparams directory exists
+  ansible.builtin.file:
+    path: /etc/nginx/dhparams
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+  
+- name: Generate Diffie-Hellman parameters with the default size (4096 bits)
+  become: true
+  community.crypto.openssl_dhparam:
+    path: /etc/nginx/dhparams/dhparams.pem

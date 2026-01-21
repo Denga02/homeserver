@@ -10,7 +10,7 @@
   become: true
   ansible.builtin.service:
     name: nginx
-    state: reloaded
+    state: restarted
   listen: Reload nginx
 
 - name: Reload mariadb
