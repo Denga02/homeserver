@@ -1,0 +1,21 @@
+- name: Install basic packages
+  become: true
+  ansible.builtin.package:
+    name:
+      - gnupg
+      - gnupg2
+      - bzip2
+      - pigz
+      - lsb-release
+      - wget
+      - imagemagick
+      - curl
+      - rsyslog
+      - dialog
+      - apt-utils
+      - cron
+      - ca-certificates
+      - ubuntu-keyring
+      - ufw
+    state: present
+    update_cache: true
