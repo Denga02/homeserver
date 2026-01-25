@@ -1,0 +1,48 @@
+---
+# work with replace instead
+- name: Deploy nginx main configuration
+  become: true
+  ansible.builtin.copy:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload nginx
+  tags: [ nginx ]
+
+- name: Ensure nginx snippets
+  become: true
+  ansible.builtin.file:
+    path: /etc/nginx/snippets
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy Headers config
+# work with template
+  become: true
+  ansible.builtin.copy:
+    src: headers.conf
+    dest: /etc/nginx/snippets/headers.conf
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Deploy ssl config
+# work with template
+  become: true
+  ansible.builtin.copy:
+    src: ssl.conf
+    dest: /etc/nginx/snippets/ssl.conf
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Remove default nginx vhost
+  become: true
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload nginx

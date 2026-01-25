@@ -1,0 +1,8 @@
+---
+- name: Install Nginx
+  ansible.builtin.import_tasks: install.yml
+  tags: [nginx, install]
+
+- name: Configure Nginx
+  ansible.builtin.import_tasks: configure.yml
+  tags: [nginx, config]
