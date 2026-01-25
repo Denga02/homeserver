@@ -1,7 +1,11 @@
 all:
   hosts:
     homeserver:
-      ansible_host: 192.168.10.45
+      ansible_host: homeserver
+      ansible_user: admin
+      ansible_python_interpreter: /usr/bin/python3
+    nextcloud-test: 
+      ansible_host: nextcloud-test
       ansible_user: admin
       ansible_python_interpreter: /usr/bin/python3
 
