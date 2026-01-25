@@ -1,0 +1,33 @@
+---
+- name: Disable Redis TCP port
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '^port\s+'
+    line: 'port 0'
+    backup: yes
+  notify: restart redis
+
+- name: Enable Redis Unix socket
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '^#?\s*unixsocket\s+/run/redis/redis-server\.sock'
+    line: 'unixsocket /run/redis/redis-server.sock'
+    backup: yes
+  notify: restart redis
+
+- name: Set Unix socket permissions to 770
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '^#?\s*unixsocketperm\s+'
+    line: 'unixsocketperm 770'
+    backup: yes
+  notify: restart redis
+
+- name: Add www-data user to redis group
+  ansible.builtin.user:
+    name: www-data
+    groups: redis
+    append: yes

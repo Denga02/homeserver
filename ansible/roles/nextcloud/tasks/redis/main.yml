@@ -1,0 +1,8 @@
+---
+- name: Install Redis
+  ansible.builtin.import_tasks: install.yml
+  tags: [redis, install]
+
+- name: Configure Redis
+  ansible.builtin.import_tasks: configure.yml
+  tags: [redis, config]

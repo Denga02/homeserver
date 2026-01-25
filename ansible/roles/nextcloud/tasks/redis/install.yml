@@ -1,0 +1,15 @@
+---
+- name: Install Redis server
+  become: true
+  ansible.builtin.package:
+    name: 
+      - redis-server
+    state: present
+    update_cache: true
+
+- name: Ensure Redis is running and enabled
+  become: true
+  ansible.builtin.service:
+    name: redis-server
+    state: started
+    enabled: true
