@@ -1,0 +1,8 @@
+---
+- name: Install MariaDB
+  ansible.builtin.import_tasks: install.yml
+  tags: [mariadb, install]
+
+- name: Secure MariaDB installation
+  ansible.builtin.import_tasks: secure.yml
+  tags: [mariadb, secure]
