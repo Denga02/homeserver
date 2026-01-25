@@ -1,0 +1,16 @@
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name {{ domain }} {{ ansible_default_ipv4.address }};
+ 
+    root /var/www;
+
+    location ^~ /.well-known/acme-challenge {
+        default_type text/plain;
+        root {{ acme_webroot }};
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
