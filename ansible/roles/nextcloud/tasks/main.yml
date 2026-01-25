@@ -1,21 +1,36 @@
 ---
-- name: Install base packages and services
-  ansible.builtin.import_tasks: software_installation.yml
-  tags: [ install ]
+- name: Install packages
+  ansible.builtin.import_tasks: packages.yml
+  tags: [packages, install]
 
-- name: Configure services and system
-  ansible.builtin.import_tasks: configure_software.yml
-  tags: [ config ]
+- name: Create system users
+  ansible.builtin.import_tasks: users.yml
+  tags: [users, install]
 
-- name: Prepare TLS and ACME prerequisites
-  ansible.builtin.import_tasks: generated_tls.yml
-  tags: [ tls ]
+- name: Configure MariaDB
+  ansible.builtin.import_tasks: mariadb/main.yml
+  tags: [mariadb]
 
-- name: Configure ssl
-  ansible.builtin.import_tasks: configure_ssl.yml
+- name: Configure Nginx
+  ansible.builtin.import_tasks: nginx/main.yml
+  tags: [nginx]
 
-- name: Configure headers
-  ansible.builtin.import_tasks: configure_header.yml
+- name: Configure PHP
+  ansible.builtin.import_tasks: php/main.yml
+  tags: [php]
 
-- name: Deploy Nextcloud vHost
-  ansible.builtin.import_tasks: nextcloud_vhost.yml
+- name: Configure Redis
+  ansible.builtin.import_tasks: redis/main.yml
+  tags: [redis]
+
+- name: Configure Firewall
+  ansible.builtin.import_tasks: firewall/main.yml
+  tags: [firewall]
+
+- name: Setup TLS certificates
+  ansible.builtin.import_tasks: tls/main.yml
+  tags: [tls]
+
+- name: Install and configure Nextcloud
+  ansible.builtin.import_tasks: nextcloud/main.yml
+  tags: [nc]
