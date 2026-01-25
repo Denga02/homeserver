@@ -1,0 +1,12 @@
+---
+- name: Setup ACME client
+  ansible.builtin.import_tasks: acme_setup.yml
+  tags: [acme, setup]
+
+- name: Issue TLS certificates
+  ansible.builtin.import_tasks: certificates.yml
+  tags: [acme, tls]
+
+- name: Generate DH parameters
+  ansible.builtin.import_tasks: dhparams.yml
+  tags: [acme, dhparams]

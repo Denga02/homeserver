@@ -1,0 +1,55 @@
+---
+- name: Ensure TLS directory structure exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    mode: '0775'
+  loop:
+    - "{{ tls_base_dir }}"
+    - "{{ tls_base_dir }}/rsa"
+    - "{{ tls_base_dir }}/ecdsa"
+
+- name: Ensure Nginx is running and enabled
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+    enabled: true
+
+- name: Issue RSA certificate with acme.sh
+  become_user: "{{ acme_user }}"
+  ansible.builtin.command:
+    cmd: >
+      ~/.acme.sh/acme.sh --issue
+      -d {{ domain }}
+      --keylength 4096
+      -w {{ acme_webroot }}
+      --key-file {{ tls_base_dir }}/rsa/key.pem
+      --ca-file {{ tls_base_dir }}/rsa/ca.pem
+      --cert-file {{ tls_base_dir }}/rsa/cert.pem
+      --fullchain-file {{ tls_base_dir }}/rsa/fullchain.pem
+      --reloadcmd "sudo /bin/systemctl reload nginx.service"
+    creates: "{{ tls_base_dir }}/rsa/fullchain.pem"
+  register: rsa_cert_result
+
+- name: Issue ECDSA certificate with acme.sh
+  become_user: "{{ acme_user }}"
+  ansible.builtin.command:
+    cmd: >
+      ~/.acme.sh/acme.sh --issue
+      -d {{ domain }}
+      --keylength ec-384
+      -w {{ acme_webroot }}
+      --key-file {{ tls_base_dir }}/ecdsa/key.pem
+      --ca-file {{ tls_base_dir }}/ecdsa/ca.pem
+      --cert-file {{ tls_base_dir }}/ecdsa/cert.pem
+      --fullchain-file {{ tls_base_dir }}/ecdsa/fullchain.pem
+      --reloadcmd "sudo /bin/systemctl reload nginx.service"
+    creates: "{{ tls_base_dir }}/ecdsa/fullchain.pem"
+  register: ecdsa_cert_result
+  failed_when:
+    - ecdsa_cert_result.rc != 0
+    - "'Cert success' not in ecdsa_cert_result.stdout"

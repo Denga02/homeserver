@@ -1,0 +1,15 @@
+---
+- name: Ensure dhparams directory exists
+  become: true
+  ansible.builtin.file:
+    path: /etc/nginx/dhparams
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  
+- name: Generate Diffie-Hellman parameters
+  become: true
+  community.crypto.openssl_dhparam:
+    path: /etc/nginx/dhparams/dhparams.pem
+    size: 4096

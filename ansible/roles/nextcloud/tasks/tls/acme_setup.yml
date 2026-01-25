@@ -1,0 +1,42 @@
+---
+- name: Install acme.sh
+  become_user: "{{ acme_user }}"
+  ansible.builtin.shell: curl https://get.acme.sh | sh
+  args:
+    chdir: "/home/{{ acme_user }}"
+    creates: "/home/{{ acme_user }}/.acme.sh"
+
+- name: Set Let's Encrypt as default CA in acme.sh
+  become_user: "{{ acme_user }}"
+  ansible.builtin.command:
+    cmd: "/home/{{ acme_user }}/.acme.sh/acme.sh --set-default-ca --server {{ acme_user }}"
+
+- name: Ensure permissions for ACME webroot
+  become: true
+  ansible.builtin.file:
+    path: "{{ acme_webroot }}"
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    mode: '775'
+    recurse: true
+
+- name: Ensure ACME challenge directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ acme_webroot }}/.well-known/acme-challenge"
+    state: directory
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    mode: '0775'
+
+- name: Deploy ACME HTTP-01 challenge gateway vhost
+  become: true
+  ansible.builtin.template:
+  # adjust vars in template
+    src: nginx/http_gateway.conf.j2
+    dest: /etc/nginx/conf.d/00-http-gateway.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload nginx
+
