@@ -1,0 +1,29 @@
+---
+- name: Install PHP
+  become: true
+  ansible.builtin.package:
+    name: 
+      - php-fpm
+      - php-gd
+      - php-curl
+      - php-xml
+      - php-zip
+      - php-intl
+      - php-mbstring
+      - php-bz2
+      - php-json
+      - php-apcu
+      - php-imagick
+      - php-gmp
+      - php-bcmath
+      - php-redis
+      - php-mysql
+    state: present
+    update_cache: true
+
+- name: Ensure PHP is running and enabled
+  become: true
+  ansible.builtin.service:
+    name: "{{ php_fpm_service }}"
+    state: started
+    enabled: true

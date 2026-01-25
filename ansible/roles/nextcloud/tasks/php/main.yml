@@ -1,0 +1,8 @@
+---
+- name: Install Php
+  ansible.builtin.import_tasks: install.yml
+  tags: [php, install]
+
+- name: Configure Php
+  ansible.builtin.import_tasks: configure.yml
+  tags: [php, config]
