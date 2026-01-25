@@ -1,7 +1,0 @@
----
-- name: Set Let's Encrypt as default CA in acme.sh
-  become: true
-  become_user: letsencrypt
-  ansible.builtin.command:
-    cmd: "~/.acme.sh/acme.sh --set-default-ca --server letsencrypt"
-  tags: [acme]
