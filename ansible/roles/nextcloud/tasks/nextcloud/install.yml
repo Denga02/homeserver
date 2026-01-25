@@ -1,0 +1,63 @@
+---
+- name: Deploy Nextcloud vhost configuration
+  become: true
+  ansible.builtin.template:
+    src: nginx/nextcloud.conf.j2
+    dest: "/etc/nginx/conf.d/{{ domain }}.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload nginx
+
+- name: Check if directory exists
+  ansible.builtin.stat:
+    path: "{{ nextcloud_webroot }}"
+  register: nextcloud_dir
+  
+- name: Download Nextcloud
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ nextcloud_download_url }}"
+    dest: "/tmp/nextcloud-{{ nextcloud_version }}.tar.bz2"
+    checksum: "{{ nextcloud_checksum | default(omit) }}"
+    mode: '0644'
+  when: not nextcloud_dir.stat.exists
+
+- name: Extract Nextcloud to /var/www
+  become: true
+  ansible.builtin.unarchive:
+    src: "/tmp/nextcloud-{{ nextcloud_version }}.tar.bz2"
+    dest: /var/www
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    remote_src: true
+    creates: /var/www/nextcloud
+  when: not nextcloud_dir.stat.exists
+
+- name: Remove Nextcloud tarball
+  become: true
+  ansible.builtin.file:
+    path: "/tmp/nextcloud-{{ nextcloud_version }}.tar.bz2"
+    state: absent
+  when: not nextcloud_dir.stat.exists
+
+- name: Ensure Nextcloud data directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ nextcloud_data_dir }}"
+    state: directory
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    mode: '0750'
+
+- name: Restart redis server
+  ansible.builtin.service:
+    name: redis-server
+    state: restarted
+
+- name: Restart PHP-FPM
+  ansible.builtin.service:
+    name: "{{ php_fpm_service }}"
+    state: restarted
+
+

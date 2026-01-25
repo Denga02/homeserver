@@ -1,0 +1,20 @@
+---
+- name: Create Nextcloud database
+  become: true
+  community.mysql.mysql_db:
+    name: "{{ nextcloud_db_name }}"
+    encoding: utf8mb4
+    collation: utf8mb4_general_ci
+    state: present
+    login_unix_socket: "{{ mariadb_socket }}"
+
+- name: Create Nextcloud database user
+  become: true
+  community.mysql.mysql_user:
+    name: "{{ nextcloud_db_user }}"
+    password: "{{ nextcloud_db_password }}"
+    host: localhost
+    priv: "{{ nextcloud_db_name }}.*:ALL"
+    state: present
+    login_unix_socket: "{{ mariadb_socket }}"
+  no_log: true

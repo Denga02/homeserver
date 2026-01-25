@@ -1,0 +1,70 @@
+---
+- name: Check Nextcloud status
+  become_user: "{{ web_user }}"
+  ansible.builtin.command: php /var/www/nextcloud/occ status --output=json
+  register: nc_status
+  changed_when: false
+  failed_when: false
+
+- name: Setup Nextcloud
+  become_user: "{{ web_user }}"
+  nextcloud.admin.run_occ:
+    nextcloud_path: "{{ nextcloud_webroot }}"
+    command: >-
+      maintenance:install
+      --database {{ nextcloud_db_backend }}
+      --database-host {{ nextcloud_db_host }}
+      --database-name {{ nextcloud_db_name }}
+      --database-user {{ nextcloud_db_user }}
+      --database-pass {{ nextcloud_db_password }}
+      --admin-user {{ nextcloud_admin_name }}
+      --admin-pass {{ nextcloud_admin_pwd }}
+      --data-dir {{ nextcloud_data_dir }}
+  notify: Reload nginx
+  when: (nc_status.stdout | default('{}') | from_json).installed is not defined
+        or ((nc_status.stdout | from_json).installed | bool) == false
+
+- name: Set Nextcloud settings in config.php
+  become_user: "{{ web_user }}"
+  nextcloud.admin.run_occ:
+    nextcloud_path: "{{ nextcloud_webroot }}"
+    command: >-
+      config:system:set
+      {{ item.name }}
+      --value {{ item.value }}{% if item.value | type_debug == 'bool' %} --type=boolean{% endif %}
+  with_items:
+    - "{{ nextcloud_config_settings }}"
+
+- name: Set Trusted Domains
+  become_user: "{{ web_user }}"
+  nextcloud.admin.run_occ:
+    nextcloud_path: "{{ nextcloud_webroot }}"
+    command: >-
+      config:system:set
+      trusted_domains {{ item.0 }}
+      --value={{ item.1 | ansible.utils.ipwrap }}
+  with_indexed_items: "{{ nextcloud_trusted_domain }}"
+
+- name: Set Redis Server
+  become_user: "{{ web_user }}"
+  nextcloud.admin.run_occ:
+    nextcloud_path: "{{ nextcloud_webroot }}"
+    command: >-
+      config:system:set {{ item.name }}
+      --value {{ item.value }}{% if item.value | type_debug == 'bool' %} --type=boolean{% endif %}
+  with_items:
+    - "{{ nextcloud_redis_settings }}"
+
+- name: Set Nextcloud Cronjob
+  become_user: "{{ web_user }}"
+  ansible.builtin.cron:
+    name: "Nextcloud background jobs"
+    user: "{{ web_user }}"
+    minute: "*/5"
+    job: "php -f {{ nextcloud_webroot }}/cron.php > /dev/null 2>&1"
+
+- name: Set Cron method to Crontab
+  become_user: "{{ web_user }}"
+  nextcloud.admin.run_occ:
+    nextcloud_path: "{{ nextcloud_webroot }}"
+    command: background:cron
